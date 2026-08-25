@@ -112,12 +112,27 @@ h1 {
   padding: 0 20px;
   color: var(--paper);
   background: var(--ink);
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
   font-weight: 700;
   text-decoration: none;
 }
 
 .primary-link:hover {
   background: var(--accent-dark);
+}
+
+.secondary-link {
+  color: var(--ink-muted);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.secondary-link:hover {
+  color: var(--ink);
 }
 
 .build-status {

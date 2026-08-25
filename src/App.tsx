@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { CameraView } from "./features/training/CameraView";
 import "./App.css";
 
 const exercises = [
@@ -22,6 +24,8 @@ const exercises = [
 ];
 
 function App() {
+  const [showCameraValidation, setShowCameraValidation] = useState(false);
+
   return (
     <div className="site-shell">
       <header className="site-header">
@@ -47,9 +51,18 @@ function App() {
               视频只在设备本地处理，训练结果由用户决定是否保存。
             </p>
             <div className="hero-actions">
-              <a className="primary-link" href="#exercises">
-                查看首版动作
+              <button
+                className="primary-link"
+                type="button"
+                onClick={() => setShowCameraValidation((current) => !current)}
+                aria-expanded={showCameraValidation}
+                aria-controls="camera-validation"
+              >
+                {showCameraValidation ? "收起技术验证" : "打开摄像头验证"}
                 <span aria-hidden="true">↘</span>
+              </button>
+              <a className="secondary-link" href="#exercises">
+                查看首版动作
               </a>
               <p className="build-status" role="status">
                 <span aria-hidden="true" />
@@ -88,6 +101,8 @@ function App() {
             </div>
           </div>
         </section>
+
+        {showCameraValidation && <CameraView />}
 
         <section
           className="workflow-section"

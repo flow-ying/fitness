@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import App from "./App";
@@ -32,5 +33,22 @@ describe("App foundation", () => {
       "href",
       "#exercises",
     );
+  });
+
+  it("opens the camera validation view on demand", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "打开摄像头验证" }));
+
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: "先确认设备能稳定看见全身",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "开始摄像头验证" }),
+    ).toBeInTheDocument();
   });
 });
