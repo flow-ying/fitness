@@ -29,6 +29,7 @@ test("shows the approved first-release scope", async ({ page }) => {
 
 test("keeps primary navigation keyboard accessible", async ({ page }) => {
   await page.goto("/");
+  await page.locator("body").click({ position: { x: 1, y: 1 } });
 
   await page.keyboard.press("Tab");
   await expect(page.getByRole("link", { name: "姿态工坊首页" })).toBeFocused();

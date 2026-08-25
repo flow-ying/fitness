@@ -31,6 +31,13 @@
   margin-top: 34px;
 }
 
+.camera-device-notice {
+  flex-basis: 100%;
+  margin: 0;
+  color: rgb(255 255 255 / 68%);
+  font-size: 12px;
+}
+
 .camera-controls label {
   display: grid;
   gap: 7px;

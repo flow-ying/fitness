@@ -20,6 +20,7 @@ export function CameraView() {
   const [errorMessage, setErrorMessage] = useState("");
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
+  const [deviceNotice, setDeviceNotice] = useState("");
   const [fps, setFps] = useState(0);
   const [landmarkCount, setLandmarkCount] = useState(0);
   const [visibility, setVisibility] = useState(0);
@@ -49,14 +50,19 @@ export function CameraView() {
 
   useEffect(() => {
     let active = true;
-    void navigator.mediaDevices?.enumerateDevices().then((allDevices) => {
-      if (!active) return;
-      const cameras = allDevices.filter(
-        (device) => device.kind === "videoinput",
-      );
-      setDevices(cameras);
-      setSelectedDeviceId((current) => current || cameras[0]?.deviceId || "");
-    });
+    void navigator.mediaDevices?.enumerateDevices().then(
+      (allDevices) => {
+        if (!active) return;
+        const cameras = allDevices.filter(
+          (device) => device.kind === "videoinput",
+        );
+        setDevices(cameras);
+        setSelectedDeviceId((current) => current || cameras[0]?.deviceId || "");
+      },
+      () => {
+        if (active) setDeviceNotice("设备列表不可用，将尝试使用默认摄像头");
+      },
+    );
     return () => {
       active = false;
       stopCamera();
@@ -157,8 +163,13 @@ export function CameraView() {
       animationFrameRef.current = requestAnimationFrame(() =>
         runDetectionRef.current(),
       );
-      const refreshed = await navigator.mediaDevices.enumerateDevices();
-      setDevices(refreshed.filter((device) => device.kind === "videoinput"));
+      try {
+        const refreshed = await navigator.mediaDevices.enumerateDevices();
+        setDevices(refreshed.filter((device) => device.kind === "videoinput"));
+        setDeviceNotice("");
+      } catch {
+        setDeviceNotice("设备列表刷新失败，当前验证仍在运行");
+      }
     } catch (error) {
       if (operationId !== operationIdRef.current) return;
       stopCamera();
@@ -198,6 +209,11 @@ export function CameraView() {
               ))}
             </select>
           </label>
+          {deviceNotice && (
+            <p className="camera-device-notice" role="note">
+              {deviceNotice}
+            </p>
+          )}
           {status === "running" ? (
             <button
               type="button"
