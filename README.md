@@ -2,7 +2,7 @@
 
 基于人体姿态估计的健身动作规范检测 Web 系统。用户将手动选择深蹲、俯卧撑或哑铃弯举，应用在浏览器本地完成关键点检测、动作计数和规范性反馈；云端只保存用户选择提交的训练汇总，不保存原始视频。
 
-当前进度：T01 工程基线已完成；T02 已接入摄像头与 MediaPipe 技术验证页，真实设备 FPS 和兼容性仍待记录。
+当前进度：T01 工程基线已完成；T02 代码与异常路径已覆盖，真实设备 FPS 和兼容性仍待记录；T03 已建立 Supabase 数据边界和 RLS 迁移，云端账号与网络矩阵待配置项目后验证。
 
 ## 技术基线
 
@@ -11,6 +11,8 @@
 - ESLint 10 + Prettier 3
 - Vitest 4 + Testing Library
 - Playwright 1.62
+- `@mediapipe/tasks-vision` 0.10.35
+- `@supabase/supabase-js` 2.112.4
 
 Vite 8 要求 Node.js 20.19+ 或 22.12+。本项目当前使用 Node.js 24 验证。
 
@@ -75,7 +77,13 @@ e2e/                   Playwright 关键用户流程
 
 ## 当前范围
 
-T02 提供摄像头与 MediaPipe 技术验证页；动作规则、登录和云端历史将在后续任务接入。
+T02 提供摄像头与 MediaPipe 技术验证页；T03 已提供 Supabase 客户端配置、训练记录类型、RLS 迁移和历史服务接口，但尚未连接具体 Supabase 项目。
+
+## 云端技术验证前置
+
+`supabase/migrations/0001_workout_history.sql` 创建最小训练结果表并启用 RLS。客户端只使用浏览器可公开的 publishable key；`src/services/history.ts` 不接收任意用户筛选条件，查询依赖当前 Supabase 会话和数据库策略隔离用户数据。
+
+配置本地 `.env.local` 后，下一步需要在 Supabase 项目中执行迁移，建立两个测试账号，并在校园网、手机热点和答辩电脑上完成 10 次读写矩阵。没有真实项目 URL、publishable key 和测试账号前，不把 T03 标记为完成，也不把 RLS 隔离写成已验证事实。
 
 ## 官方依据
 
@@ -86,3 +94,5 @@ T02 提供摄像头与 MediaPipe 技术验证页；动作规则、登录和云�
 - [Playwright Installation](https://playwright.dev/docs/intro)
 - [Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
 - [Prettier Install](https://prettier.io/docs/install)
+- [Supabase JavaScript 初始化](https://supabase.com/docs/reference/javascript/initializing)
+- [Supabase Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security)
