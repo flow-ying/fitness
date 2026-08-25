@@ -71,7 +71,7 @@ e2e/                   Playwright 关键用户流程
 
 真实设备验证至少记录：操作系统、浏览器版本、摄像头、机位、连续运行时长、平均 FPS、关键点可见度和失败条件。当前自动化测试不模拟真实摄像头，也不把网络模型加载当作 CI 前置条件。
 
-官方依据：[MediaPipe Pose Landmarker Web](https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker/web_js)。其视频模式使用 `detectForVideo(videoFrame, timestamp)`；本验证页先采用 Lite 模型和主线程基线，T12 再根据 FPS 决定是否迁移 Web Worker。
+官方依据：[MediaPipe Pose Landmarker Web](https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker/web_js)。当前锁定 `@mediapipe/tasks-vision` 0.10.35；其视频模式使用 `detectForVideo(videoFrame, timestamp)`。本验证页先采用 Lite 模型和主线程基线，T12 再根据 FPS 决定是否迁移 Web Worker。
 
 ## 当前范围
 
