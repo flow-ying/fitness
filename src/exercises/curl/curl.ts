@@ -29,15 +29,14 @@ export const curlThresholds = {
   topElbowAngle: 80,
   topExitElbowAngle: 100,
   extendedElbowAngle: 165,
-  minimumCurlDegrees: 70,
   maximumUpperArmMovementDegrees: 15,
   maximumTorsoSwingDegrees: 15,
   directionChangeDegrees: 3,
 } as const;
 
 const curlSideIndices = [
-  [12, 14, 16, 24, 12],
-  [11, 13, 15, 23, 11],
+  [12, 14, 16, 24],
+  [11, 13, 15, 23],
 ] as const;
 
 export function measureCurlPose(
