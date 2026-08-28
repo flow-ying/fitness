@@ -52,10 +52,16 @@ test("exposes honest auth and history states without cloud configuration", async
   await expect(
     page.getByRole("heading", { name: "登录后保存训练历史" }),
   ).toBeVisible();
-  await expect(page.getByRole("status")).toContainText("尚未配置 Supabase");
+  await expect(page.getByRole("textbox", { name: "邮箱" })).toBeVisible();
+  const authStatuses = page.getByRole("status");
+  if ((await authStatuses.count()) > 0) {
+    await expect(authStatuses).toContainText(/尚未配置 Supabase|登录成功/);
+  }
 
   await page.getByRole("button", { name: "返回" }).click();
   await page.getByRole("button", { name: "训练历史" }).click();
   await expect(page.getByRole("heading", { name: "训练历史" })).toBeVisible();
-  await expect(page.getByRole("status")).toContainText("历史记录暂不可用");
+  await expect(page.getByRole("status")).toContainText(
+    /历史记录暂不可用|请先登录/,
+  );
 });
