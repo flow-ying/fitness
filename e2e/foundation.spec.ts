@@ -42,3 +42,20 @@ test("keeps primary navigation keyboard accessible", async ({ page }) => {
     page.getByRole("link", { name: "首版动作", exact: true }),
   ).toBeFocused();
 });
+
+test("exposes honest auth and history states without cloud configuration", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "登录" }).click();
+  await expect(
+    page.getByRole("heading", { name: "登录后保存训练历史" }),
+  ).toBeVisible();
+  await expect(page.getByRole("status")).toContainText("尚未配置 Supabase");
+
+  await page.getByRole("button", { name: "返回" }).click();
+  await page.getByRole("button", { name: "训练历史" }).click();
+  await expect(page.getByRole("heading", { name: "训练历史" })).toBeVisible();
+  await expect(page.getByRole("status")).toContainText("历史记录暂不可用");
+});

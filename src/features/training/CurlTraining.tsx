@@ -8,6 +8,7 @@ import {
   createCurlSession,
   type CurlSession,
 } from "./curlSession";
+import { WorkoutSavePanel } from "./WorkoutSavePanel";
 import "./CurlTraining.css";
 
 const phaseLabels: Record<ExercisePhase, string> = {
@@ -44,8 +45,11 @@ export function CurlTraining({ onBack }: { onBack?: () => void }) {
   const lastUiUpdateRef = useRef(0);
   const [session, setSession] = useState(initialSession);
   const [poseStatus, setPoseStatus] = useState("等待摄像头画面");
+  const [startedAt, setStartedAt] = useState<string | null>(null);
+  const [averageFps, setAverageFps] = useState(0);
 
   const handlePoseFrame = useCallback((frame: PoseFrame) => {
+    setStartedAt((current) => current ?? new Date().toISOString());
     const processed = processPose(
       frame.landmarks,
       frame.timestampMs,
@@ -81,6 +85,7 @@ export function CurlTraining({ onBack }: { onBack?: () => void }) {
     const repCompleted = next.exercise.totalReps > previousTotal;
     if (shouldUpdateUi || repCompleted) {
       setSession(next);
+      setAverageFps(frame.fps);
       setPoseStatus(
         metrics.confidence < curlThresholds.minimumConfidence
           ? "侧面关键关节不清晰，请调整机位"
@@ -97,6 +102,8 @@ export function CurlTraining({ onBack }: { onBack?: () => void }) {
     lastUiUpdateRef.current = 0;
     setSession(reset);
     setPoseStatus("等待摄像头画面");
+    setStartedAt(null);
+    setAverageFps(0);
   };
 
   const formScore = session.exercise.totalReps
@@ -156,6 +163,12 @@ export function CurlTraining({ onBack }: { onBack?: () => void }) {
           <p className="curl-threshold-note">
             当前角度阈值用于技术验证，仍需用自采样例校准；结果不替代教练或医疗判断。
           </p>
+          <WorkoutSavePanel
+            exerciseType="curl"
+            exercise={session.exercise}
+            startedAt={startedAt}
+            averageFps={averageFps}
+          />
           <button
             type="button"
             className="camera-button camera-button-muted"

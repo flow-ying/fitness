@@ -1,0 +1,12 @@
+.workout-save-panel {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.workout-save-panel p {
+  margin: 0;
+  color: rgb(255 255 255 / 68%);
+  font-size: 13px;
+  line-height: 1.6;
+}

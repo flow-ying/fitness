@@ -3,6 +3,9 @@ import { CameraView } from "./features/training/CameraView";
 import { CurlTraining } from "./features/training/CurlTraining";
 import { PushupTraining } from "./features/training/PushupTraining";
 import { SquatTraining } from "./features/training/SquatTraining";
+import { AuthPanel } from "./features/auth/AuthPanel";
+import { HistoryPage } from "./features/history/HistoryPage";
+import { useOptionalAuth } from "./features/auth/AuthContext";
 import "./App.css";
 
 const exercises = [
@@ -31,6 +34,9 @@ function App() {
   const [activeExercise, setActiveExercise] = useState<
     "squat" | "pushup" | "curl" | null
   >(null);
+  const [showAuth, setShowAuth] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const { user } = useOptionalAuth();
 
   return (
     <div className="site-shell">
@@ -44,11 +50,21 @@ function App() {
         <nav aria-label="主导航">
           <a href="#workflow">工作方式</a>
           <a href="#exercises">首版动作</a>
+          <button type="button" onClick={() => setShowHistory(true)}>
+            训练历史
+          </button>
+          <button type="button" onClick={() => setShowAuth(true)}>
+            {user ? "账号" : "登录"}
+          </button>
         </nav>
       </header>
 
       <main id="top">
-        {activeExercise === "squat" ? (
+        {showHistory ? (
+          <HistoryPage onBack={() => setShowHistory(false)} />
+        ) : showAuth ? (
+          <AuthPanel onClose={() => setShowAuth(false)} />
+        ) : activeExercise === "squat" ? (
           <SquatTraining onBack={() => setActiveExercise(null)} />
         ) : activeExercise === "pushup" ? (
           <PushupTraining onBack={() => setActiveExercise(null)} />
