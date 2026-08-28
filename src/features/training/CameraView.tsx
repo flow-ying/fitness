@@ -59,30 +59,43 @@ export function CameraView({
   const [landmarkCount, setLandmarkCount] = useState(0);
   const [visibility, setVisibility] = useState(0);
 
-  const stopCamera = useCallback((updateStatus = true) => {
-    operationIdRef.current += 1;
-    if (animationFrameRef.current !== null) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-    landmarkerRef.current?.close();
-    landmarkerRef.current = null;
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-    streamRef.current = null;
-    if (videoRef.current) videoRef.current.srcObject = null;
-    const context = canvasRef.current?.getContext("2d");
-    if (context && canvasRef.current) {
-      context.clearRect(
-        0,
-        0,
-        canvasRef.current.width,
-        canvasRef.current.height,
-      );
-    }
-    if (updateStatus) {
-      setStatus((current) => (current === "error" ? current : "stopped"));
-    }
+  const resetMetrics = useCallback(() => {
+    frameCountRef.current = 0;
+    fpsStartedAtRef.current = 0;
+    fpsRef.current = 0;
+    setFps(0);
+    setLandmarkCount(0);
+    setVisibility(0);
   }, []);
+
+  const stopCamera = useCallback(
+    (updateStatus = true) => {
+      operationIdRef.current += 1;
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+      landmarkerRef.current?.close();
+      landmarkerRef.current = null;
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+      if (videoRef.current) videoRef.current.srcObject = null;
+      const context = canvasRef.current?.getContext("2d");
+      if (context && canvasRef.current) {
+        context.clearRect(
+          0,
+          0,
+          canvasRef.current.width,
+          canvasRef.current.height,
+        );
+      }
+      resetMetrics();
+      if (updateStatus) {
+        setStatus((current) => (current === "error" ? current : "stopped"));
+      }
+    },
+    [resetMetrics],
+  );
 
   useEffect(() => {
     let active = true;
@@ -169,7 +182,7 @@ export function CameraView({
     } catch (error) {
       stopCamera(false);
       setErrorMessage(
-        error instanceof Error ? error.message : "姿态检测运行失败，请重试。",
+        toCameraErrorMessage(error, "姿态检测运行失败，请重试。"),
       );
       setStatus("error");
     }
@@ -232,9 +245,7 @@ export function CameraView({
       if (operationId !== operationIdRef.current) return;
       stopCamera();
       setStatus("error");
-      setErrorMessage(
-        error instanceof Error ? error.message : "摄像头或模型初始化失败。",
-      );
+      setErrorMessage(toCameraErrorMessage(error, "摄像头或模型初始化失败。"));
     }
   };
 
@@ -300,7 +311,13 @@ export function CameraView({
 
       <div className="camera-stage-wrap">
         <div className="camera-stage">
-          <video ref={videoRef} muted playsInline aria-label="摄像头画面" />
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            playsInline
+            aria-label="摄像头画面"
+          />
           <canvas ref={canvasRef} aria-label="人体姿态骨架叠加层" />
           {status !== "running" && (
             <span className="camera-placeholder">等待摄像头画面</span>
@@ -323,4 +340,14 @@ export function CameraView({
       </div>
     </section>
   );
+}
+
+function toCameraErrorMessage(error: unknown, fallback: string): string {
+  if (
+    error instanceof DOMException &&
+    (error.name === "NotReadableError" || error.name === "TrackStartError")
+  ) {
+    return "摄像头可能被其他应用占用，请关闭相机软件后重试，或切换到内置摄像头。";
+  }
+  return error instanceof Error ? error.message : fallback;
 }

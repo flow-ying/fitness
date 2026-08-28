@@ -209,4 +209,45 @@ describe("CameraView", () => {
     expect(stop).toHaveBeenCalledOnce();
     expect(close).toHaveBeenCalledOnce();
   });
+
+  it("clears stale pose metrics when the camera is stopped", async () => {
+    const stop = vi.fn();
+    const close = vi.fn();
+    const landmarks = [{ x: 0.5, y: 0.5, visibility: 0.9 }];
+    getUserMedia.mockResolvedValue({ getTracks: () => [{ stop }] });
+    createPoseLandmarkerMock.mockResolvedValue({
+      close,
+      detectForVideo: vi.fn().mockReturnValue({ landmarks: [landmarks] }),
+    });
+    const user = userEvent.setup();
+    render(<CameraView />);
+
+    await user.click(screen.getByRole("button", { name: "开始摄像头验证" }));
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent("检测运行中"),
+    );
+    await act(() => rafCallback?.(performance.now()));
+    expect(screen.getByText("1/33")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "停止验证" }));
+
+    expect(screen.getByText("—/33")).toBeInTheDocument();
+    expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("explains when the selected camera is already in use", async () => {
+    getUserMedia.mockRejectedValue(
+      new DOMException("Device in use", "NotReadableError"),
+    );
+    const user = userEvent.setup();
+    render(<CameraView />);
+
+    await user.click(screen.getByRole("button", { name: "开始摄像头验证" }));
+
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "摄像头可能被其他应用占用",
+      ),
+    );
+  });
 });
