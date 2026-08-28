@@ -102,4 +102,21 @@ describe("curl rule", () => {
     expect(measured.elbowAngle).toBeGreaterThan(0);
     expect(measured.upperArmMovementDegrees).toBeGreaterThanOrEqual(0);
   });
+
+  it("does not flag a vertical arm and upright torso as form errors", () => {
+    const landmarks = Array.from({ length: 33 }, () => ({
+      x: 0,
+      y: 0,
+      visibility: 0,
+    }));
+    Object.assign(landmarks[12], { x: 0.5, y: 0.2, visibility: 0.9 });
+    Object.assign(landmarks[14], { x: 0.5, y: 0.4, visibility: 0.9 });
+    Object.assign(landmarks[16], { x: 0.5, y: 0.6, visibility: 0.9 });
+    Object.assign(landmarks[24], { x: 0.5, y: 0.6, visibility: 0.9 });
+
+    const measured = measureCurlPose(landmarks);
+
+    expect(measured.upperArmMovementDegrees).toBeCloseTo(0);
+    expect(measured.torsoSwingDegrees).toBeCloseTo(0);
+  });
 });

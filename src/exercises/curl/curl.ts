@@ -58,19 +58,14 @@ export function measureCurlPose(
 
   return {
     elbowAngle: angleAt(scaledShoulder, scaledElbow, scaledWrist),
-    upperArmMovementDegrees: Math.abs(
-      angleAt(scaledShoulder, scaledElbow, {
-        x: scaledElbow.x,
-        y: scaledElbow.y - 1,
-      }) - 90,
-    ),
-    torsoSwingDegrees: Math.abs(
-      180 -
-        angleAt(scaledShoulder, scaledHip, {
-          x: scaledHip.x,
-          y: scaledHip.y - 1,
-        }),
-    ),
+    upperArmMovementDegrees: angleAt(scaledShoulder, scaledElbow, {
+      x: scaledElbow.x,
+      y: scaledElbow.y - 1,
+    }),
+    torsoSwingDegrees: angleAt(scaledShoulder, scaledHip, {
+      x: scaledHip.x,
+      y: scaledHip.y - 1,
+    }),
     confidence: averageVisibility([shoulder, elbow, wrist, hip]),
   };
 }

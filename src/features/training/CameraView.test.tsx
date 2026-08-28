@@ -185,4 +185,28 @@ describe("CameraView", () => {
       }),
     );
   });
+
+  it("shows a recoverable error and releases resources when detection throws", async () => {
+    const stop = vi.fn();
+    const close = vi.fn();
+    getUserMedia.mockResolvedValue({ getTracks: () => [{ stop }] });
+    createPoseLandmarkerMock.mockResolvedValue({
+      close,
+      detectForVideo: vi.fn(() => {
+        throw new Error("姿态推理失败");
+      }),
+    });
+    const user = userEvent.setup();
+    render(<CameraView />);
+
+    await user.click(screen.getByRole("button", { name: "开始摄像头验证" }));
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent("检测运行中"),
+    );
+    await act(() => rafCallback?.(performance.now()));
+
+    expect(screen.getByRole("status")).toHaveTextContent("姿态推理失败");
+    expect(stop).toHaveBeenCalledOnce();
+    expect(close).toHaveBeenCalledOnce();
+  });
 });

@@ -131,39 +131,49 @@ export function CameraView({
 
     const context = canvas.getContext("2d");
     if (!context) return;
-    const timestampMs = performance.now();
-    const result = landmarker.detectForVideo(video, timestampMs);
-    const pose = result.landmarks[0];
-    drawPose(context, pose, canvas.width, canvas.height);
-    setLandmarkCount(pose?.length ?? 0);
-    setVisibility(
-      pose && pose.length > 0
-        ? pose.reduce((sum, landmark) => sum + (landmark.visibility ?? 0), 0) /
-            pose.length
-        : 0,
-    );
-    frameCountRef.current += 1;
-    const now = performance.now();
-    if (now - fpsStartedAtRef.current >= 1000) {
-      setFps(
-        (fpsRef.current = Math.round(
-          (frameCountRef.current * 1000) / (now - fpsStartedAtRef.current),
-        )),
+    try {
+      const timestampMs = performance.now();
+      const result = landmarker.detectForVideo(video, timestampMs);
+      const pose = result.landmarks[0];
+      drawPose(context, pose, canvas.width, canvas.height);
+      setLandmarkCount(pose?.length ?? 0);
+      setVisibility(
+        pose && pose.length > 0
+          ? pose.reduce(
+              (sum, landmark) => sum + (landmark.visibility ?? 0),
+              0,
+            ) / pose.length
+          : 0,
       );
-      frameCountRef.current = 0;
-      fpsStartedAtRef.current = now;
+      frameCountRef.current += 1;
+      const now = performance.now();
+      if (now - fpsStartedAtRef.current >= 1000) {
+        setFps(
+          (fpsRef.current = Math.round(
+            (frameCountRef.current * 1000) / (now - fpsStartedAtRef.current),
+          )),
+        );
+        frameCountRef.current = 0;
+        fpsStartedAtRef.current = now;
+      }
+      onPoseFrameRef.current?.({
+        landmarks: pose ?? [],
+        timestampMs,
+        frameAspectRatio:
+          video.videoHeight > 0 ? video.videoWidth / video.videoHeight : 1,
+        fps: fpsRef.current,
+      });
+      animationFrameRef.current = requestAnimationFrame(() =>
+        runDetectionRef.current(),
+      );
+    } catch (error) {
+      stopCamera(false);
+      setErrorMessage(
+        error instanceof Error ? error.message : "姿态检测运行失败，请重试。",
+      );
+      setStatus("error");
     }
-    onPoseFrameRef.current?.({
-      landmarks: pose ?? [],
-      timestampMs,
-      frameAspectRatio:
-        video.videoHeight > 0 ? video.videoWidth / video.videoHeight : 1,
-      fps: fpsRef.current,
-    });
-    animationFrameRef.current = requestAnimationFrame(() =>
-      runDetectionRef.current(),
-    );
-  }, []);
+  }, [stopCamera]);
 
   useEffect(() => {
     runDetectionRef.current = runDetection;
