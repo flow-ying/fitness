@@ -1,7 +1,7 @@
 export type ExerciseType = "squat" | "pushup" | "curl";
 
 export type ExercisePhase =
-  "ready" | "descending" | "bottom" | "ascending" | "top";
+  "ready" | "standing" | "descending" | "bottom" | "ascending" | "top";
 
 export type FormIssueCode =
   | "insufficient_depth"
