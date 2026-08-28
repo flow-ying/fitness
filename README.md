@@ -81,13 +81,13 @@ e2e/                   Playwright 关键用户流程
 
 ## 当前范围
 
-T02 提供摄像头与 MediaPipe 技术验证页；T03 已提供 Supabase 客户端配置、训练记录类型、RLS 迁移和历史服务接口，但尚未连接具体 Supabase 项目。
+T02 提供摄像头与 MediaPipe 技术验证页；T03 已提供 Supabase 客户端配置、训练记录类型、RLS 迁移和历史服务接口。Supabase 项目 `fitness-course-project` 已创建并执行迁移；双账号、网络矩阵和部署地址的真实读写验收仍待完成。
 
 ## 云端技术验证前置
 
 `supabase/migrations/0001_workout_history.sql` 创建最小训练结果表并启用 RLS。客户端只使用浏览器可公开的 publishable key；`src/services/history.ts` 不接收任意用户筛选条件，查询依赖当前 Supabase 会话和数据库策略隔离用户数据。
 
-配置本地 `.env.local` 后，需要在 Supabase 项目中执行迁移，建立两个测试账号，并在校园网、手机热点和答辩电脑上完成 10 次读写矩阵。没有真实项目 URL、publishable key 和测试账号前，不把 T03 或 T08-T10 标记为完整完成，也不把 RLS 隔离写成已验证事实。
+配置本地 `.env.local` 后，需要建立两个测试账号，并在校园网、手机热点和答辩电脑上完成 10 次读写矩阵。项目 URL 为 `https://cqgvundirxatrnnyonpn.supabase.co`；publishable key 只保存在本地环境变量。没有双账号和网络证据前，不把 T03 或 T08-T10 标记为完整完成，也不把 RLS 隔离写成已验证事实。
 
 ## 官方依据
 
