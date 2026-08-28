@@ -1,4 +1,5 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { StrictMode } from "react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CameraView } from "./CameraView";
@@ -74,6 +75,18 @@ describe("CameraView", () => {
     expect(createPoseLandmarkerMock).not.toHaveBeenCalled();
   });
 
+  it("keeps the idle status after StrictMode effect cleanup", () => {
+    render(
+      <StrictMode>
+        <CameraView />
+      </StrictMode>,
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "尚未请求摄像头权限",
+    );
+  });
+
   it("shows a model error and releases the stream when model loading fails", async () => {
     const stop = vi.fn();
     getUserMedia.mockResolvedValue({ getTracks: () => [{ stop }] });
@@ -147,6 +160,31 @@ describe("CameraView", () => {
 
     await waitFor(() =>
       expect(screen.getByRole("note")).toHaveTextContent("设备列表不可用"),
+    );
+  });
+
+  it("publishes detected pose frames to a training consumer", async () => {
+    const onPoseFrame = vi.fn();
+    const landmarks = [{ x: 0.5, y: 0.5, visibility: 0.9 }];
+    getUserMedia.mockResolvedValue({ getTracks: () => [{ stop: vi.fn() }] });
+    createPoseLandmarkerMock.mockResolvedValue({
+      close: vi.fn(),
+      detectForVideo: vi.fn().mockReturnValue({ landmarks: [landmarks] }),
+    });
+    const user = userEvent.setup();
+    render(<CameraView onPoseFrame={onPoseFrame} />);
+
+    await user.click(screen.getByRole("button", { name: "开始摄像头验证" }));
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent("检测运行中"),
+    );
+    await act(() => rafCallback?.(performance.now()));
+
+    expect(onPoseFrame).toHaveBeenCalledWith(
+      expect.objectContaining({
+        landmarks,
+        frameAspectRatio: 4 / 3,
+      }),
     );
   });
 });

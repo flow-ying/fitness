@@ -1,21 +1,55 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { PoseLandmarker } from "@mediapipe/tasks-vision";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import type {
+  NormalizedLandmark,
+  PoseLandmarker,
+} from "@mediapipe/tasks-vision";
 import { createPoseLandmarker } from "../../pose/mediapipe";
 import { drawPose } from "../../pose/drawPose";
 import "./CameraView.css";
 
 type CameraStatus = "idle" | "loading" | "running" | "stopped" | "error";
 
-export function CameraView() {
+export type PoseFrame = {
+  landmarks: NormalizedLandmark[];
+  timestampMs: number;
+  frameAspectRatio: number;
+  fps: number;
+};
+
+type CameraViewProps = {
+  sectionId?: string;
+  eyebrow?: string;
+  title?: string;
+  description?: string;
+  feedback?: ReactNode;
+  onPoseFrame?: (frame: PoseFrame) => void;
+};
+
+export function CameraView({
+  sectionId = "camera-validation",
+  eyebrow = "03 / T02 技术验证",
+  title = "先确认设备能稳定看见全身",
+  description = "这是开发验证页，不会上传视频。授权后，Pose Landmarker Lite 在浏览器本地推理，Canvas 只叠加当前帧的骨架。",
+  feedback,
+  onPoseFrame,
+}: CameraViewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const landmarkerRef = useRef<PoseLandmarker | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const runDetectionRef = useRef<() => void>(() => undefined);
+  const onPoseFrameRef = useRef(onPoseFrame);
   const operationIdRef = useRef(0);
   const frameCountRef = useRef(0);
   const fpsStartedAtRef = useRef(0);
+  const fpsRef = useRef(0);
   const [status, setStatus] = useState<CameraStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
@@ -25,7 +59,7 @@ export function CameraView() {
   const [landmarkCount, setLandmarkCount] = useState(0);
   const [visibility, setVisibility] = useState(0);
 
-  const stopCamera = useCallback(() => {
+  const stopCamera = useCallback((updateStatus = true) => {
     operationIdRef.current += 1;
     if (animationFrameRef.current !== null) {
       cancelAnimationFrame(animationFrameRef.current);
@@ -45,7 +79,9 @@ export function CameraView() {
         canvasRef.current.height,
       );
     }
-    setStatus((current) => (current === "error" ? current : "stopped"));
+    if (updateStatus) {
+      setStatus((current) => (current === "error" ? current : "stopped"));
+    }
   }, []);
 
   useEffect(() => {
@@ -65,7 +101,7 @@ export function CameraView() {
     );
     return () => {
       active = false;
-      stopCamera();
+      stopCamera(false);
     };
   }, [stopCamera]);
 
@@ -95,7 +131,8 @@ export function CameraView() {
 
     const context = canvas.getContext("2d");
     if (!context) return;
-    const result = landmarker.detectForVideo(video, performance.now());
+    const timestampMs = performance.now();
+    const result = landmarker.detectForVideo(video, timestampMs);
     const pose = result.landmarks[0];
     drawPose(context, pose, canvas.width, canvas.height);
     setLandmarkCount(pose?.length ?? 0);
@@ -109,13 +146,20 @@ export function CameraView() {
     const now = performance.now();
     if (now - fpsStartedAtRef.current >= 1000) {
       setFps(
-        Math.round(
+        (fpsRef.current = Math.round(
           (frameCountRef.current * 1000) / (now - fpsStartedAtRef.current),
-        ),
+        )),
       );
       frameCountRef.current = 0;
       fpsStartedAtRef.current = now;
     }
+    onPoseFrameRef.current?.({
+      landmarks: pose ?? [],
+      timestampMs,
+      frameAspectRatio:
+        video.videoHeight > 0 ? video.videoWidth / video.videoHeight : 1,
+      fps: fpsRef.current,
+    });
     animationFrameRef.current = requestAnimationFrame(() =>
       runDetectionRef.current(),
     );
@@ -124,6 +168,10 @@ export function CameraView() {
   useEffect(() => {
     runDetectionRef.current = runDetection;
   }, [runDetection]);
+
+  useEffect(() => {
+    onPoseFrameRef.current = onPoseFrame;
+  }, [onPoseFrame]);
 
   const startCamera = async () => {
     stopCamera();
@@ -182,17 +230,14 @@ export function CameraView() {
 
   return (
     <section
-      id="camera-validation"
+      id={sectionId}
       className="camera-validation"
-      aria-labelledby="camera-validation-title"
+      aria-labelledby={`${sectionId}-title`}
     >
       <div className="camera-copy">
-        <p className="section-index">03 / T02 技术验证</p>
-        <h2 id="camera-validation-title">先确认设备能稳定看见全身</h2>
-        <p>
-          这是开发验证页，不会上传视频。授权后，Pose Landmarker Lite
-          在浏览器本地推理，Canvas 只叠加当前帧的骨架。
-        </p>
+        <p className="section-index">{eyebrow}</p>
+        <h2 id={`${sectionId}-title`}>{title}</h2>
+        <p>{description}</p>
         <div className="camera-controls">
           <label>
             摄像头
@@ -240,6 +285,7 @@ export function CameraView() {
           {status === "stopped" && "验证已停止，摄像头轨道已释放"}
           {status === "error" && errorMessage}
         </p>
+        {feedback}
       </div>
 
       <div className="camera-stage-wrap">

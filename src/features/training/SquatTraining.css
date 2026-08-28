@@ -1,0 +1,79 @@
+.squat-feedback {
+  display: grid;
+  gap: 18px;
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid rgb(255 255 255 / 20%);
+}
+
+.squat-pose-status,
+.squat-threshold-note,
+.squat-last-feedback p {
+  margin: 0;
+}
+
+.squat-pose-status {
+  color: var(--accent);
+  font-size: 13px;
+}
+
+.squat-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  border-top: 1px solid rgb(255 255 255 / 18%);
+  border-left: 1px solid rgb(255 255 255 / 18%);
+}
+
+.squat-summary div {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border-right: 1px solid rgb(255 255 255 / 18%);
+  border-bottom: 1px solid rgb(255 255 255 / 18%);
+}
+
+.squat-summary dt {
+  color: rgb(255 255 255 / 56%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.squat-summary dd {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 750;
+}
+
+.squat-last-feedback {
+  display: grid;
+  gap: 8px;
+}
+
+.squat-last-feedback strong {
+  font-size: 14px;
+}
+
+.squat-last-feedback p,
+.squat-last-feedback ul,
+.squat-threshold-note {
+  color: rgb(255 255 255 / 68%);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.squat-last-feedback ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.squat-threshold-note {
+  padding-left: 12px;
+  border-left: 2px solid var(--accent);
+}
+
+.squat-feedback .camera-button {
+  justify-self: start;
+}
