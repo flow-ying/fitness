@@ -3,6 +3,7 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CameraView } from "./CameraView";
+import { isVideoFrameStalled } from "./cameraUtils";
 
 const { createPoseLandmarkerMock, drawPoseMock } = vi.hoisted(() => ({
   createPoseLandmarkerMock: vi.fn(),
@@ -60,6 +61,13 @@ describe("CameraView", () => {
     vi.stubGlobal("cancelAnimationFrame", vi.fn());
     createPoseLandmarkerMock.mockReset();
     drawPoseMock.mockReset();
+  });
+
+  it("detects a video frame that stopped advancing", () => {
+    expect(isVideoFrameStalled(12, 12, 3_000, 1_000)).toBe(true);
+    expect(isVideoFrameStalled(12, 12, 2_400, 1_000)).toBe(false);
+    expect(isVideoFrameStalled(13, 12, 3_000, 1_000)).toBe(false);
+    expect(isVideoFrameStalled(12, null, 3_000, 1_000)).toBe(false);
   });
 
   it("shows a permission error when camera access is rejected", async () => {
@@ -249,5 +257,66 @@ describe("CameraView", () => {
         "摄像头可能被其他应用占用",
       ),
     );
+  });
+
+  it("shows an error and releases resources when the video track ends", async () => {
+    const close = vi.fn();
+    const track = {
+      kind: "video",
+      stop: vi.fn(),
+      onended: null as (() => void) | null,
+    };
+    getUserMedia.mockResolvedValue({ getTracks: () => [track] });
+    createPoseLandmarkerMock.mockResolvedValue({
+      close,
+      detectForVideo: vi.fn().mockReturnValue({ landmarks: [[]] }),
+    });
+    const user = userEvent.setup();
+    render(<CameraView />);
+
+    await user.click(screen.getByRole("button", { name: "开始摄像头验证" }));
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent("检测运行中"),
+    );
+
+    act(() => track.onended?.());
+
+    expect(screen.getByRole("status")).toHaveTextContent("摄像头视频流已停止");
+    expect(track.stop).toHaveBeenCalledOnce();
+    expect(close).toHaveBeenCalledOnce();
+  });
+
+  it("stops detection when the video time remains unchanged", async () => {
+    const stop = vi.fn();
+    const close = vi.fn();
+    let currentTime = 12;
+    const track = { stop, onended: null as (() => void) | null };
+    getUserMedia.mockResolvedValue({ getTracks: () => [track] });
+    createPoseLandmarkerMock.mockResolvedValue({
+      close,
+      detectForVideo: vi.fn().mockReturnValue({ landmarks: [[]] }),
+    });
+    const user = userEvent.setup();
+    render(<CameraView />);
+    Object.defineProperty(screen.getByLabelText("摄像头画面"), "currentTime", {
+      configurable: true,
+      get: () => currentTime,
+    });
+
+    await user.click(screen.getByRole("button", { name: "开始摄像头验证" }));
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent("检测运行中"),
+    );
+
+    const now = vi.spyOn(performance, "now").mockReturnValue(1_000);
+    await act(() => rafCallback?.(1_000));
+    currentTime = 12;
+    now.mockReturnValue(2_600);
+    await act(() => rafCallback?.(2_600));
+
+    expect(screen.getByRole("status")).toHaveTextContent("视频帧没有继续更新");
+    expect(stop).toHaveBeenCalledOnce();
+    expect(close).toHaveBeenCalledOnce();
+    now.mockRestore();
   });
 });

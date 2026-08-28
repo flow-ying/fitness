@@ -11,6 +11,7 @@ import type {
 } from "@mediapipe/tasks-vision";
 import { createPoseLandmarker } from "../../pose/mediapipe";
 import { drawPose } from "../../pose/drawPose";
+import { isVideoFrameStalled } from "./cameraUtils";
 import "./CameraView.css";
 
 type CameraStatus = "idle" | "loading" | "running" | "stopped" | "error";
@@ -31,6 +32,12 @@ type CameraViewProps = {
   onPoseFrame?: (frame: PoseFrame) => void;
 };
 
+function getVideoTracks(stream: MediaStream | null): MediaStreamTrack[] {
+  return (stream?.getTracks() ?? []).filter(
+    (track) => track.kind === "video" || !("kind" in track),
+  );
+}
+
 export function CameraView({
   sectionId = "camera-validation",
   eyebrow = "03 / T02 技术验证",
@@ -50,6 +57,8 @@ export function CameraView({
   const frameCountRef = useRef(0);
   const fpsStartedAtRef = useRef(0);
   const fpsRef = useRef(0);
+  const lastVideoTimeRef = useRef<number | null>(null);
+  const lastVideoTimeChangedAtRef = useRef(0);
   const [status, setStatus] = useState<CameraStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
@@ -63,6 +72,8 @@ export function CameraView({
     frameCountRef.current = 0;
     fpsStartedAtRef.current = 0;
     fpsRef.current = 0;
+    lastVideoTimeRef.current = null;
+    lastVideoTimeChangedAtRef.current = 0;
     setFps(0);
     setLandmarkCount(0);
     setVisibility(0);
@@ -77,7 +88,11 @@ export function CameraView({
       }
       landmarkerRef.current?.close();
       landmarkerRef.current = null;
-      streamRef.current?.getTracks().forEach((track) => track.stop());
+      const stream = streamRef.current;
+      getVideoTracks(stream).forEach((track) => {
+        track.onended = null;
+      });
+      stream?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
       if (videoRef.current) videoRef.current.srcObject = null;
       const context = canvasRef.current?.getContext("2d");
@@ -146,6 +161,21 @@ export function CameraView({
     if (!context) return;
     try {
       const timestampMs = performance.now();
+      if (video.currentTime !== lastVideoTimeRef.current) {
+        lastVideoTimeRef.current = video.currentTime;
+        lastVideoTimeChangedAtRef.current = timestampMs;
+      } else if (
+        isVideoFrameStalled(
+          video.currentTime,
+          lastVideoTimeRef.current,
+          timestampMs,
+          lastVideoTimeChangedAtRef.current,
+        )
+      ) {
+        throw new Error(
+          "视频帧没有继续更新，请检查摄像头是否被其他应用占用，或重新选择设备。",
+        );
+      }
       const result = landmarker.detectForVideo(video, timestampMs);
       const pose = result.landmarks[0];
       drawPose(context, pose, canvas.width, canvas.height);
@@ -218,6 +248,14 @@ export function CameraView({
         return;
       }
       streamRef.current = stream;
+      getVideoTracks(stream).forEach((track) => {
+        track.onended = () => {
+          if (operationId !== operationIdRef.current) return;
+          stopCamera(false);
+          setErrorMessage("摄像头视频流已停止，请重新选择设备并重试。");
+          setStatus("error");
+        };
+      });
       const video = videoRef.current;
       if (!video) throw new Error("视频元素未准备好。");
       video.srcObject = stream;
@@ -317,6 +355,16 @@ export function CameraView({
             muted
             playsInline
             aria-label="摄像头画面"
+            onEnded={() => {
+              stopCamera(false);
+              setErrorMessage("摄像头视频流已结束，请重新选择设备并重试。");
+              setStatus("error");
+            }}
+            onError={() => {
+              stopCamera(false);
+              setErrorMessage("摄像头视频播放失败，请重新选择设备并重试。");
+              setStatus("error");
+            }}
           />
           <canvas ref={canvasRef} aria-label="人体姿态骨架叠加层" />
           {status !== "running" && (
