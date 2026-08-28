@@ -2,7 +2,7 @@
 
 基于人体姿态估计的健身动作规范检测 Web 系统。用户将手动选择深蹲、俯卧撑或哑铃弯举，应用在浏览器本地完成关键点检测、动作计数和规范性反馈；云端只保存用户选择提交的训练汇总，不保存原始视频。
 
-当前进度：T01 工程基线已完成；T02 代码与异常路径已覆盖，真实设备 FPS 和兼容性仍待记录；T03 已建立 Supabase 数据边界和 RLS 迁移，云端账号与网络矩阵待配置项目后验证；T04 公共姿态处理和动作接口已完成；T05 深蹲、T06 俯卧撑和 T07 哑铃弯举代码切片、训练入口和自动化验证已完成，固定视频、真实摄像头流程和阈值校准仍待补；下一阶段处理登录、训练结果保存和历史统计。
+当前进度：T01 工程基线已完成；T02 代码与异常路径已覆盖，真实设备 FPS 和兼容性仍待记录；T03 已建立 Supabase 数据边界和 RLS 迁移，云端账号与网络矩阵待配置项目后验证；T04 公共姿态处理和动作接口已完成；T05-T07 三种动作代码切片、训练入口和自动化验证已完成，固定视频、真实摄像头流程和阈值校准仍待补；T08-T10 已完成登录/会话、统一结果保存、历史统计代码切片，真实 Supabase 双账号隔离和网络矩阵待验证。
 
 ## 技术基线
 
@@ -75,6 +75,10 @@ e2e/                   Playwright 关键用户流程
 
 官方依据：[MediaPipe Pose Landmarker Web](https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker/web_js)。当前锁定 `@mediapipe/tasks-vision` 0.10.35；其视频模式使用 `detectForVideo(videoFrame, timestamp)`。本验证页先采用 Lite 模型和主线程基线，T12 再根据 FPS 决定是否迁移 Web Worker。
 
+## 登录、保存与历史
+
+首页提供登录/注册、训练历史入口。配置 `.env.local` 后，认证由 Supabase Auth 管理；登录用户可以在训练页保存汇总结果，并在历史页查看自己的记录和统计。未配置云端时，页面会明确提示不可用，不会生成伪造历史数据。
+
 ## 当前范围
 
 T02 提供摄像头与 MediaPipe 技术验证页；T03 已提供 Supabase 客户端配置、训练记录类型、RLS 迁移和历史服务接口，但尚未连接具体 Supabase 项目。
@@ -83,7 +87,7 @@ T02 提供摄像头与 MediaPipe 技术验证页；T03 已提供 Supabase 客户
 
 `supabase/migrations/0001_workout_history.sql` 创建最小训练结果表并启用 RLS。客户端只使用浏览器可公开的 publishable key；`src/services/history.ts` 不接收任意用户筛选条件，查询依赖当前 Supabase 会话和数据库策略隔离用户数据。
 
-配置本地 `.env.local` 后，下一步需要在 Supabase 项目中执行迁移，建立两个测试账号，并在校园网、手机热点和答辩电脑上完成 10 次读写矩阵。没有真实项目 URL、publishable key 和测试账号前，不把 T03 标记为完成，也不把 RLS 隔离写成已验证事实。
+配置本地 `.env.local` 后，需要在 Supabase 项目中执行迁移，建立两个测试账号，并在校园网、手机热点和答辩电脑上完成 10 次读写矩阵。没有真实项目 URL、publishable key 和测试账号前，不把 T03 或 T08-T10 标记为完整完成，也不把 RLS 隔离写成已验证事实。
 
 ## 官方依据
 
