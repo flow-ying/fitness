@@ -1,0 +1,79 @@
+.pushup-feedback {
+  display: grid;
+  gap: 18px;
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid rgb(255 255 255 / 20%);
+}
+
+.pushup-pose-status,
+.pushup-threshold-note,
+.pushup-last-feedback p {
+  margin: 0;
+}
+
+.pushup-pose-status {
+  color: var(--accent);
+  font-size: 13px;
+}
+
+.pushup-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  border-top: 1px solid rgb(255 255 255 / 18%);
+  border-left: 1px solid rgb(255 255 255 / 18%);
+}
+
+.pushup-summary div {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border-right: 1px solid rgb(255 255 255 / 18%);
+  border-bottom: 1px solid rgb(255 255 255 / 18%);
+}
+
+.pushup-summary dt {
+  color: rgb(255 255 255 / 56%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pushup-summary dd {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 750;
+}
+
+.pushup-last-feedback {
+  display: grid;
+  gap: 8px;
+}
+
+.pushup-last-feedback strong {
+  font-size: 14px;
+}
+
+.pushup-last-feedback p,
+.pushup-last-feedback ul,
+.pushup-threshold-note {
+  color: rgb(255 255 255 / 68%);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.pushup-last-feedback ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.pushup-threshold-note {
+  padding-left: 12px;
+  border-left: 2px solid var(--accent);
+}
+
+.pushup-feedback .camera-button {
+  justify-self: start;
+}

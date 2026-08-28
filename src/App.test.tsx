@@ -65,4 +65,15 @@ describe("App foundation", () => {
       screen.getByRole("button", { name: "返回动作列表" }),
     ).toBeInTheDocument();
   });
+
+  it("opens the pushup training slice from the exercise list", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "开始俯卧撑训练" }));
+
+    expect(
+      screen.getByRole("heading", { level: 2, name: "俯卧撑实时训练" }),
+    ).toBeInTheDocument();
+  });
 });
