@@ -82,9 +82,7 @@ describe("CameraView", () => {
       </StrictMode>,
     );
 
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "尚未请求摄像头权限",
-    );
+    expect(screen.getByRole("status")).toHaveTextContent("尚未请求摄像头权限");
   });
 
   it("shows a model error and releases the stream when model loading fails", async () => {

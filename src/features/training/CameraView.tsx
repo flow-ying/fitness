@@ -263,7 +263,7 @@ export function CameraView({
             <button
               type="button"
               className="camera-button camera-button-muted"
-              onClick={stopCamera}
+              onClick={() => stopCamera()}
             >
               停止验证
             </button>
