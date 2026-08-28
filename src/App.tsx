@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { CameraView } from "./features/training/CameraView";
+import { CurlTraining } from "./features/training/CurlTraining";
 import { PushupTraining } from "./features/training/PushupTraining";
 import { SquatTraining } from "./features/training/SquatTraining";
 import "./App.css";
@@ -28,7 +29,7 @@ const exercises = [
 function App() {
   const [showCameraValidation, setShowCameraValidation] = useState(false);
   const [activeExercise, setActiveExercise] = useState<
-    "squat" | "pushup" | null
+    "squat" | "pushup" | "curl" | null
   >(null);
 
   return (
@@ -51,6 +52,8 @@ function App() {
           <SquatTraining onBack={() => setActiveExercise(null)} />
         ) : activeExercise === "pushup" ? (
           <PushupTraining onBack={() => setActiveExercise(null)} />
+        ) : activeExercise === "curl" ? (
+          <CurlTraining onBack={() => setActiveExercise(null)} />
         ) : (
           <>
             <section className="hero-section" aria-labelledby="hero-title">
@@ -176,6 +179,14 @@ function App() {
                         onClick={() => setActiveExercise("pushup")}
                       >
                         开始俯卧撑训练 <span aria-hidden="true">→</span>
+                      </button>
+                    ) : exercise.code === "BC" ? (
+                      <button
+                        type="button"
+                        className="exercise-start-button"
+                        onClick={() => setActiveExercise("curl")}
+                      >
+                        开始哑铃弯举训练 <span aria-hidden="true">→</span>
                       </button>
                     ) : (
                       <span className="exercise-unavailable">

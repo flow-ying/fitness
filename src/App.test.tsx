@@ -76,4 +76,15 @@ describe("App foundation", () => {
       screen.getByRole("heading", { level: 2, name: "俯卧撑实时训练" }),
     ).toBeInTheDocument();
   });
+
+  it("opens the curl training slice from the exercise list", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "开始哑铃弯举训练" }));
+
+    expect(
+      screen.getByRole("heading", { level: 2, name: "哑铃弯举实时训练" }),
+    ).toBeInTheDocument();
+  });
 });
