@@ -3,9 +3,9 @@
   grid-template-columns: minmax(280px, 0.72fr) minmax(360px, 1.28fr);
   gap: clamp(40px, 7vw, 96px);
   align-items: start;
-  padding: 100px max(20px, calc((100vw - 1180px) / 2));
+  padding: 96px max(24px, calc((100vw - 1240px) / 2));
   color: var(--paper);
-  background: #27333a;
+  background: var(--night-soft);
 }
 
 .camera-copy h2 {
@@ -50,8 +50,8 @@
 .camera-controls select,
 .camera-button {
   min-height: 44px;
-  border: 1px solid rgb(255 255 255 / 26%);
-  border-radius: 0;
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 10px;
   font: inherit;
 }
 
@@ -59,7 +59,7 @@
   min-width: 170px;
   padding: 0 34px 0 12px;
   color: var(--paper);
-  background: #27333a;
+  background: var(--night-soft);
 }
 
 .camera-button {
@@ -104,7 +104,8 @@
   position: relative;
   aspect-ratio: 16 / 10;
   overflow: hidden;
-  border: 1px solid rgb(255 255 255 / 28%);
+  border: 1px solid rgb(255 255 255 / 24%);
+  border-radius: 18px 18px 0 0;
   background: #11171b;
 }
 
@@ -141,6 +142,7 @@
   grid-template-columns: repeat(3, 1fr);
   margin: 0;
   border-right: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 0 0 18px 18px;
   border-bottom: 1px solid rgb(255 255 255 / 18%);
   border-left: 1px solid rgb(255 255 255 / 18%);
 }
