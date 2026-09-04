@@ -314,7 +314,9 @@ describe("CameraView", () => {
     now.mockReturnValue(2_600);
     await act(() => rafCallback?.(2_600));
 
-    expect(screen.getByRole("status")).toHaveTextContent("视频帧没有继续更新");
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "摄像头已授权，但视频帧没有继续更新",
+    );
     expect(stop).toHaveBeenCalledOnce();
     expect(close).toHaveBeenCalledOnce();
     now.mockRestore();

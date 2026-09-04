@@ -173,7 +173,7 @@ export function CameraView({
         )
       ) {
         throw new Error(
-          "视频帧没有继续更新，请检查摄像头是否被其他应用占用，或重新选择设备。",
+          "摄像头已授权，但视频帧没有继续更新。这通常是浏览器媒体管线或摄像头驱动异常，请完全重启浏览器后重试，或切换设备。",
         );
       }
       const result = landmarker.detectForVideo(video, timestampMs);
