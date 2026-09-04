@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>摄像头基础诊断</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: system-ui, sans-serif;
+        background: #14221e;
+        color: #eef1ed;
+      }
+      body {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 32px 20px;
+      }
+      h1 {
+        margin-top: 0;
+      }
+      p {
+        color: #b8c4bc;
+        line-height: 1.6;
+      }
+      button {
+        padding: 10px 16px;
+        border: 0;
+        border-radius: 8px;
+        background: #c8f169;
+        color: #15211d;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      video {
+        display: block;
+        width: min(100%, 720px);
+        margin-top: 20px;
+        aspect-ratio: 16 / 9;
+        background: #0d1512;
+        border: 1px solid #496b35;
+        border-radius: 12px;
+        object-fit: contain;
+      }
+      pre {
+        white-space: pre-wrap;
+        padding: 16px;
+        border-radius: 10px;
+        background: #20332c;
+        color: #c8f169;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>摄像头基础诊断</h1>
+    <p>这个页面不加载 MediaPipe，只检查浏览器能否持续读取摄像头视频帧。</p>
+    <button id="start">开始基础测试</button>
+    <video id="video" autoplay muted playsinline></video>
+    <pre id="status">尚未开始</pre>
+    <script>
+      const video = document.querySelector("#video");
+      const status = document.querySelector("#status");
+      let stream;
+      let lastTime = null;
+      let samples = 0;
+      function report(message) {
+        status.textContent = `${message}\ncurrentTime: ${video.currentTime}\npaused: ${video.paused}\nreadyState: ${video.readyState}\nsrcObject: ${Boolean(video.srcObject)}\nvideoSize: ${video.videoWidth}×${video.videoHeight}`;
+      }
+      document.querySelector("#start").addEventListener("click", async () => {
+        try {
+          stream?.getTracks().forEach((track) => track.stop());
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: true,
+          });
+          video.srcObject = stream;
+          await video.play();
+          lastTime = video.currentTime;
+          samples = 0;
+          const check = () => {
+            if (!video.srcObject) return;
+            samples += 1;
+            const advanced = video.currentTime !== lastTime;
+            lastTime = video.currentTime;
+            report(
+              advanced
+                ? `运行中：视频帧在推进（样本 ${samples}）`
+                : `已授权但当前样本未推进（样本 ${samples}）`,
+            );
+            requestAnimationFrame(check);
+          };
+          check();
+        } catch (error) {
+          report(
+            `启动失败：${error.name || "未知错误"} ${error.message || error}`,
+          );
+        }
+      });
+    </script>
+  </body>
+</html>

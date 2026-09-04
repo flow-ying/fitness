@@ -42,6 +42,9 @@ npm run dev
 本地 E2E 测试默认调用已安装的稳定版 Google Chrome；CI 环境后续单独安装
 Playwright 浏览器。
 
+如果摄像头验证页显示首帧冻结，可先打开
+`http://localhost:5173/camera-diagnostic.html`。该页面不加载姿态模型，只验证浏览器是否能持续读取摄像头帧：若这里也冻结，优先排查浏览器权限、扩展和媒体管线；若这里正常，再排查 MediaPipe 加载或训练页面逻辑。
+
 ## 计划中的目录
 
 ```text
